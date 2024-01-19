@@ -1,4 +1,5 @@
 export enum LocalStorageItemsEnum {
-  USER_TIMEOUT = "sessionTimeOut",
+  USER_LOGIN_DATE = "loginDate",
   USER_ID = "userId",
+  TOKEN = "token"
 }

@@ -33,7 +33,7 @@ const AuthPage = () => {
         if (currentUser) {
           console.log(signInResult.payload);
           if (currentUser.hasCompletedInitialSettings) {
-            // TODO: navigate home
+            navigate(`/`);
           } else {
             navigate(`/profile/${currentUser.id}/information`);
           }
@@ -43,30 +43,32 @@ const AuthPage = () => {
   };
 
   return (
-    <div className={classes.auth}>
-      <div className={`${classes.title} mb-medium`}>
-        {!!matchesSignUp ? "Sign Up" : "Sign In"}
+    <div className={classes['auth-wrapper']}>
+      <div className={classes.auth}>
+        <div className={`${classes.title} mb-medium`}>
+          {!!matchesSignUp ? "Sign Up" : "Sign In"}
+        </div>
+        <Routes>
+          <Route
+            path="/signin"
+            element={
+              <AuthForm
+                isSignUp={!!matchesSignUp}
+                onAuthFormSubmit={handleSignIn}
+              />
+            }
+          ></Route>
+          <Route
+            path="/signup"
+            element={
+              <AuthForm
+                isSignUp={!!matchesSignUp}
+                onAuthFormSubmit={handleSignUp}
+              />
+            }
+          ></Route>
+        </Routes>
       </div>
-      <Routes>
-        <Route
-          path="/signin"
-          element={
-            <AuthForm
-              isSignUp={!!matchesSignUp}
-              onAuthFormSubmit={handleSignIn}
-            />
-          }
-        ></Route>
-        <Route
-          path="/signup"
-          element={
-            <AuthForm
-              isSignUp={!!matchesSignUp}
-              onAuthFormSubmit={handleSignUp}
-            />
-          }
-        ></Route>
-      </Routes>
     </div>
   );
 };

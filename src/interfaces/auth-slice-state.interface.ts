@@ -1,4 +1,4 @@
 export interface IAuthSliceState {
-  sessionTimeout: number;
+  loggedInDate: string | null;
   isLoggedIn: boolean;
 }

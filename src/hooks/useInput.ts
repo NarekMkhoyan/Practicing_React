@@ -7,10 +7,14 @@ interface IUseInputHook {
   updateInputValue: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 
-const useInput: (validatorFn: (value: string) => string) => IUseInputHook = (
-  validatorFn: (value: string) => string
+const useInput: (
+  validatorFn: (value: string) => string,
+  initialState?: string
+) => IUseInputHook = (
+  validatorFn: (value: string) => string,
+  initialState: string = ""
 ) => {
-  const [inputValue, setInputValue] = useState<string>("");
+  const [inputValue, setInputValue] = useState<string>(initialState);
   const [valid, setValid] = useState<boolean | undefined>(undefined);
   const [errorMessage, setErrorMsg] = useState<string>("");
 

@@ -7,8 +7,9 @@ export interface INewUser {
 export interface IUser extends INewUser {
   firstName: string;
   lastName: string;
-  age: number;
+  age: string;
   avatar: string;
+  dbId: string;
 }
 
 export class User implements IUser {
@@ -17,8 +18,9 @@ export class User implements IUser {
   hasCompletedInitialSettings!: boolean;
   firstName!: string;
   lastName!: string;
-  age!: number;
+  age!: string;
   avatar!: string;
+  dbId!: string;
 
   constructor(user: Partial<IUser>) {
     Object.assign(this, user);

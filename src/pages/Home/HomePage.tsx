@@ -1,5 +1,7 @@
+import { Fragment } from "react";
+
 const HomePage = () => {
-  return <>Home page works!</>;
+  return <Fragment></Fragment>;
 };
 
 export default HomePage;

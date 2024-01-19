@@ -1,12 +1,11 @@
 import {
-  PayloadAction,
   ThunkDispatch,
   UnknownAction,
   createAsyncThunk,
   createSlice,
 } from "@reduxjs/toolkit";
 import { IAuthSliceState } from "../../../interfaces/auth-slice-state.interface";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import {
   ISignInFailedResponse,
   ISignInResponse,
@@ -24,32 +23,32 @@ import { getCurrentUserFromDb, setUser } from "../user/user-reducer";
 import { IUser } from "../../../interfaces/user.interface";
 import { FirebaseSignInErrorsEnum } from "../../../constants/firebase-signin-errors.enum";
 import { LocalStorageItemsEnum } from "../../../constants/localStorage-items.enum";
+import http from "./../../../helpers/http";
 
 const initialAuthState: IAuthSliceState = {
   isLoggedIn: false,
-  sessionTimeout: 0,
+  loggedInDate: null,
 };
 
 const authSlice = createSlice({
   name: "auth",
   initialState: initialAuthState,
   reducers: {
-    setUserLoggedIn: (state, action: PayloadAction<number>) => {
-      localStorage.setItem(
-        LocalStorageItemsEnum.USER_TIMEOUT,
-        String(action.payload)
-      );
+    setUserLoggedIn: () => {
+      const now = new Date().toISOString();
+      localStorage.setItem(LocalStorageItemsEnum.USER_LOGIN_DATE, now);
       return {
         isLoggedIn: true,
-        sessionTimeout: action.payload,
+        loggedInDate: now,
       };
     },
-    logoutUser: (state) => {
-      localStorage.removeItem(LocalStorageItemsEnum.USER_TIMEOUT);
+    signOutUser: () => {
+      localStorage.removeItem(LocalStorageItemsEnum.USER_LOGIN_DATE);
       localStorage.removeItem(LocalStorageItemsEnum.USER_ID);
+      localStorage.removeItem(LocalStorageItemsEnum.TOKEN);
       return {
         isLoggedIn: false,
-        sessionTimeout: 0,
+        loggedInDate: null,
       };
     },
   },
@@ -60,13 +59,22 @@ export const signUp = createAsyncThunk<
   { email: string; password: string }
 >("auth/signUp", async (userData, { dispatch }) => {
   const signUpNewUser: () => Promise<string | null> = async () => {
-    return await axios
+    return await http
       .post<ISignUpResponse>(firebaseAuthSignUpUrl, {
         email: userData.email,
         password: userData.password,
         returnSecureToken: true,
       })
       .then((response) => {
+        localStorage.setItem(
+          LocalStorageItemsEnum.TOKEN,
+          response.data.idToken
+        );
+        localStorage.setItem(
+          LocalStorageItemsEnum.USER_ID,
+          response.data.localId
+        );
+        dispatch(setUserLoggedIn());
         saveNewUserInDb(userData.email, response.data, dispatch);
         return response.data.localId;
       })
@@ -92,18 +100,23 @@ export const signIn = createAsyncThunk<
   { email: string; password: string }
 >("auth/signin", (userData, { dispatch }) => {
   const signInUser = async () => {
-    return await axios
+    return await http
       .post<ISignInResponse>(firebaseAuthSignInUrl, {
         email: userData.email,
         password: userData.password,
         returnSecureToken: true,
       })
       .then(async (response) => {
+        localStorage.setItem(
+          LocalStorageItemsEnum.TOKEN,
+          response.data.idToken
+        );
+
         const action = await dispatch(getCurrentUserFromDb(response.data));
         const currentUser: Partial<IUser> = action.payload as Partial<IUser>;
 
         dispatch(setUser(currentUser));
-        dispatch(setUserLoggedIn(+response.data.expiresIn));
+        dispatch(setUserLoggedIn());
 
         return currentUser;
       })
@@ -136,7 +149,7 @@ const saveNewUserInDb = (
     id: response.localId,
   };
 
-  axios
+  http
     .post(`${firebaseDbUrl}users.json`, newUser)
     .then(() => {
       dispatch(setUser(newUser));
@@ -152,6 +165,6 @@ const saveNewUserInDb = (
     });
 };
 
-export const { setUserLoggedIn } = authSlice.actions;
+export const { setUserLoggedIn, signOutUser } = authSlice.actions;
 
 export default authSlice.reducer;
